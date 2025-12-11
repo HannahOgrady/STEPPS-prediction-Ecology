@@ -1,11 +1,13 @@
 library(gridExtra)
-library(maptools)
+#library(maptools)
 
-us.shp <- readOGR('data/map/us/us_alb.shp')
-us.shp@data$id <- rownames(us.shp@data)
-us.fort <- fortify(us.shp, region='id') 
+#us.shp <- readOGR('data/map/us/us_alb.shp')
+us.shp <- sf::st_read("data/map/us/us_alb.shp")
+#us.fort <- fortify(us.shp, region='id') 
+us.fort <- us.shp
 
-bw <- readOGR('data/map/bw/bw_albers.shp')
+#bw <- readOGR('data/map/bw/bw_albers.shp')
+bw <- sf::st_read("data/map/bw/bw_albers.shp")
 
 create_figure_path <- function(subDir){
   mainDir <- getwd()
@@ -1649,3 +1651,4 @@ plot_data_maps_binned <- function(y, centers, taxa, N, K, T, breaks, limits, suf
   }
   return(p)
 }
+

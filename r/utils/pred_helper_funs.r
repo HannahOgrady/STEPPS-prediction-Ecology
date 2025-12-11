@@ -2039,33 +2039,51 @@ split_mi <- function(meta){
   
   centers = data.frame(x=meta$x, y=meta$y)
   
-  coordinates(centers) <- ~ x + y
-  proj4string(centers) <- CRS('+init=epsg:3175')
+  sp::coordinates(centers) <- ~ x + y
+  sp::proj4string(centers) <- sp::CRS('+init=epsg:3175')
   
-  centers_ll <- spTransform(centers, CRS('+proj=longlat +ellps=WGS84'))
+  centers_ll <- sp::spTransform(centers, sp::CRS('+proj=longlat +ellps=WGS84'))
   centers_ll <- as.matrix(data.frame(centers_ll))
   
   if (!any(colnames(meta) == 'state')) {
-    meta$state = map.where(database='state', centers_ll[,1], centers_ll[,2])
+    meta$state = maps::map.where(database='state', centers_ll[,1], centers_ll[,2])
   }
   
   idx.mi = which(meta$state=='michigan_north')
   meta$state2 = as.vector(meta$state)
-  meta$state2[idx.mi] = map.where(database="state", centers_ll[idx.mi,1], centers_ll[idx.mi,2])
+  meta$state2[idx.mi] = maps::map.where(database="state", centers_ll[idx.mi,1], centers_ll[idx.mi,2])
   idx.na = which(is.na(meta$state2))
   idx.not.na = which(!is.na(meta$state2))
   
   idx.mi.s = which(meta$state=='michigan_south')
   meta$state2[idx.mi.s] = 'michigan:south'#map.where(database="state", centersLL[idx.mi.s,1], centersLL[idx.mi.s,2])
   
+  for (i in 1:45){
+    idx = idx.na[i]
+    print(paste("idx = ", idx))
+    centers = centers_ll[idx.not.na,]
+    print("Centers worked")
+    dmat = fields::rdist(matrix(centers_ll[idx,], nrow=1) , matrix(centers, ncol=2))
+    print("dmat worked")
+    min.val = dmat[1,which.min(dmat[which(dmat>1e-10)])]
+    print("min.val worked")
+    idx_close = which(dmat == min.val)
+    print("idx_close worked")
+    state  = maps::map.where(database="state", centers[idx_close,1], centers[idx_close,2])
+    print("state worked")
+    meta$state2[idx] = state
+    print(i)
+  }
+  
   for (i in 1:length(idx.na)){
     idx = idx.na[i]
     centers = centers_ll[idx.not.na,]
-    dmat = rdist(matrix(centers_ll[idx,], nrow=1) , matrix(centers, ncol=2))
+    dmat = fields::rdist(matrix(centers_ll[idx,], nrow=1) , matrix(centers, ncol=2))
     min.val = dmat[1,which.min(dmat[which(dmat>1e-10)])]
     idx_close = which(dmat == min.val)
-    state  = map.where(database="state", centers[idx_close,1], centers[idx_close,2])
+    state  = maps::map.where(database="state", centers[idx_close,1], centers[idx_close,2])
     meta$state2[idx] = state
+    print(i)
   }
   
   meta$state2[which(meta$state2[idx.mi]=='minnesota')] = 'michigan:north'

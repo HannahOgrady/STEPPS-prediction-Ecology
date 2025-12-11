@@ -4,7 +4,9 @@ library(reshape2)
 library(RColorBrewer)
 library(maptools)
 library(plyr)
-library(rgdal)
+#rgdal is no longer a working package in R. It has been archived and I am having trouble downloading the archived version. I am going to see if sf will work instead. 
+library(sf)
+#library(rgdal)
 
 source('r/utils/pred_analyze_funs.r')
 source('r/utils/pred_helper_funs.r')

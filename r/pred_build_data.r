@@ -1,10 +1,10 @@
 library(fields)
 library(rstan)
 library(sp)
-library(rgdal)
+#library(rgdal)
 library(ggplot2)
 library(mvtnorm)
-library(maptools)
+#library(maptools)
 library(maps)
 library(plyr)
 
@@ -15,7 +15,8 @@ source('r/utils/pred_helper_funs.r')
 ######################################################################################################################################
 
 # us albers shape file
-us.shp <- readOGR('data/map/us_alb.shp', 'us_alb')
+#us.shp <- readOGR('data/map/us_alb.shp', 'us_alb')
+us.shp <- sf::st_read('data/map/us/us_alb.shp', 'us_alb')
 
 # reconstruction limits and bin-width
 int  = 100
@@ -31,6 +32,8 @@ if (one_time) {
 rescale = 1e6
 
 # suffix to append to figure names
+#HO - I have no idea where grid_specs comes from so I will add my own to get it to run.
+grid_specs = "test_grid_specs"
 suff    = paste(grid_specs, '_', version, sep='') 
 
 # specify states; relict from testing
@@ -62,10 +65,10 @@ if (bchron){
 } else {
   path_age_samples    = 'data/bacon_ages'
 }
-path_cal      = paste0('data/', run$suff_fit,'.csv')
+path_cal      = paste0('data/calibration/', runs[[1]]$suff_fit,'.csv')
 path_veg_data = paste0('data/veg_data_', suff_veg, '_v0.4.rdata')
-path_veg_pars = paste0('data/', suff_veg, '_nb_v0.5/veg_pars_', nknots, 'knots.rdata')
-
+# path_veg_pars = paste0('data/', suff_veg, '_nb_v0.5/veg_pars_', nknots, 'knots.rdata') #HO -This is not a file or directory that exists. Replacing with what I think is correct
+path_veg_pars = 'data/veg_pars_120knots.rdata'
 ##########################################################################################################################
 ## read in tables and data
 ##########################################################################################################################
@@ -78,7 +81,7 @@ convert   = read.table('data/dict-comp2stepps.csv', sep=',', row.names=1, header
 pls.raw = data.frame(read.table(file=path_pls, sep=",", row.names=1, header=TRUE))
 
 # read in grid
-load(file=path_grid)
+#load(file=path_grid)
 
 # pollen data
 pollen_ts = read.table(path_pollen, header=TRUE, sep=',', stringsAsFactors=FALSE)

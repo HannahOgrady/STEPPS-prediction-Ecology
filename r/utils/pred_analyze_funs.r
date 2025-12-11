@@ -1,5 +1,7 @@
-bw <- readOGR('data/map/bw/bw_albers.shp')
-bw_fort <- fortify(bw)
+#bw <- readOGR('data/map/bw/bw_albers.shp') #readOGR is from rgdal which has been archived.
+bw<- sf::st_read("data/map/bw/bw_albers.shp")
+#bw_fort <- fortify(bw)
+bw_fort <- bw
 bw_buff = 108000
 bw_lims <- list(xlims=c(min(bw_fort$long)-bw_buff, max(bw_fort$long)+bw_buff)/1e6, 
                 ylims=c(min(bw_fort$lat)-bw_buff, max(bw_fort$lat)+64000)/1e6)
@@ -698,3 +700,4 @@ diff_change_below <- function(x, cut_change, prob){
     return(NA)
   }
 }
+
