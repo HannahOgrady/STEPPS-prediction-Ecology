@@ -2034,9 +2034,10 @@ convert_counts <- function(counts, tree_type, taxa_sub){
 }
 
 
-
+#HO - I believe this functions splits the Michigan upper peninsula from the lower 
+#peninsula because only the UP is in the domain. 
 split_mi <- function(meta){
-  
+  #Get the center points of each grid cell and make sure they are in the correct projection. 
   centers = data.frame(x=meta$x, y=meta$y)
   
   sp::coordinates(centers) <- ~ x + y
@@ -2044,11 +2045,12 @@ split_mi <- function(meta){
   
   centers_ll <- sp::spTransform(centers, sp::CRS('+proj=longlat +ellps=WGS84'))
   centers_ll <- as.matrix(data.frame(centers_ll))
-  
+  #Check that the data actually has state names. 
   if (!any(colnames(meta) == 'state')) {
     meta$state = maps::map.where(database='state', centers_ll[,1], centers_ll[,2])
   }
-  
+
+  #Find which points are definitely in the UP vs. the LP. 
   idx.mi = which(meta$state=='michigan_north')
   meta$state2 = as.vector(meta$state)
   meta$state2[idx.mi] = maps::map.where(database="state", centers_ll[idx.mi,1], centers_ll[idx.mi,2])
@@ -2058,18 +2060,21 @@ split_mi <- function(meta){
   idx.mi.s = which(meta$state=='michigan_south')
   meta$state2[idx.mi.s] = 'michigan:south'#map.where(database="state", centersLL[idx.mi.s,1], centersLL[idx.mi.s,2])
   
+  #For all of the grid cells whose state is unknown, check if it is in the UP. 
   for (i in 1:45){
-    idx = idx.na[i]
+    idx = idx.na[i]#Get a grid cell in an unknown state. 
     print(paste("idx = ", idx))
-    centers = centers_ll[idx.not.na,]
+    centers = centers_ll[idx.not.na,]#Get the grid cells that aren't in unknown states. 
     print("Centers worked")
-    dmat = fields::rdist(matrix(centers_ll[idx,], nrow=1) , matrix(centers, ncol=2))
+    dmat = fields::fields.rdist.near(matrix(centers_ll[idx,], nrow=1) , matrix(centers, ncol=2), delta = 15, max.points = 10000)#Distances between our grid cell and all the other non-na cells. 
     print("dmat worked")
-    min.val = dmat[1,which.min(dmat[which(dmat>1e-10)])]
-    print("min.val worked")
+    dmat = data.frame(t(dmat$ra))
+    print(paste("number of nas = ", sum(is.na(dmat))))
+    min.val = dmat[1,which.min(dmat[which(dmat>1e-10)])]#Find which grid cell is closest. 
+    print(paste("Closest cell is a distance of: ", min.val))
     idx_close = which(dmat == min.val)
-    print("idx_close worked")
-    state  = maps::map.where(database="state", centers[idx_close,1], centers[idx_close,2])
+    print(paste("id of closest cell is", idx_close))
+    state  = maps::map.where(database="state", centers[idx_close,1], centers[idx_close,2])#What state is that closest cell in?
     print("state worked")
     meta$state2[idx] = state
     print(i)
@@ -2099,7 +2104,6 @@ split_mi <- function(meta){
   return(meta)
   
 }
-
 get_quants <- function(post, npars){
   
 #   quants <- colMeans(post[,1,1:npars])
